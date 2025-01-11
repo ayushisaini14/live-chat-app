@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useChatStore } from "../store/useChatStore.js";
 import { useAuthStore } from "../store/useAuthStore.js";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton.jsx";
-import { Users } from "lucide-react";
+import { Users, FilePenLine } from "lucide-react";
 
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } =
@@ -25,9 +25,14 @@ const Sidebar = () => {
   return (
     <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
       <div className="border-b border-base-300 w-full p-5">
-        <div className="flex items-center gap-2">
-          <Users className="size-6" />
-          <span className="font-medium hidden lg:block">Contacts</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="size-6" />
+            <span className="font-medium hidden lg:block">Chats</span>
+          </div>
+          <div>
+            <FilePenLine className="size-4" />
+          </div>
         </div>
         <div className="mt-3 hidden lg:flex items-center gap-2">
           <label className="cursor-pointer flex items-center gap-2">

@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useChatStore } from "../store/useChatStore.js";
 import { Image, Send, X } from "lucide-react";
 import toast from "react-hot-toast";
+import Picker from "./Picker.jsx";
 
 const MessageInput = () => {
   const [text, setText] = useState("");
@@ -70,6 +71,7 @@ const MessageInput = () => {
 
       <form onSubmit={handleSendMessage} className="flex items-center gap-2">
         <div className="flex-1 flex gap-2">
+          <Picker onEmojiSelect={(e) => setText(text + e)}/>
           <input
             type="text"
             className="w-full input input-bordered rounded-lg input-sm sm:input-md"
