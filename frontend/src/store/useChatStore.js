@@ -57,17 +57,58 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
 
     socket.on("newMessage", (message) => {
-      if(message.senderId !== selectedUser._id) return;
+      if (message.senderId !== selectedUser._id) return;
       set({ messages: [...get().messages, message] });
+    });
+
+    socket.on("deleteMessage", (id) => {
+      set({ messages: get().messages.filter((message) => message._id !== id) });
     });
   },
 
   unsubscribeFromMessages: async () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("deleteMessage");
   },
 
   setSelectedUser: (user) => {
     set({ selectedUser: user });
+  },
+
+  deleteMessageForAll: async (id) => {
+    const { messages } = get();
+    const message = messages.find((message) => message._id === id);
+    if (!message) return;
+    try {
+      await axiosInstance.post(`/messages/deleteMessageForAll`, {
+        id: id,
+        receiverId: message.receiverId,
+      });
+      set({ messages: messages.filter((message) => message._id !== id) });
+    } catch (error) {
+      console.log("Error in deleteMessage", error);
+    }
+  },
+
+  deleteMessageForMe: async (id) => {
+    const { messages } = get();
+    const message = messages.find((message) => message._id === id);
+    if (!message) return;
+    try {
+      await axiosInstance.delete(`/messages/deleteMessageForMe/${id}`);
+      set({ messages: messages.filter((message) => message._id !== id) });
+    } catch (error) {
+      console.log("Error in deleteMessage", error);
+    }
+  },
+
+  deleteChatForMe: async (receiverId) => {
+    try {
+      await axiosInstance.delete(`/messages/deleteChatForMe/${receiverId}`);
+      set({ messages: [], selectedUser: null });
+    } catch (error) {
+      console.log("Error in deleteChat", error);
+    }
   },
 }));

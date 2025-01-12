@@ -5,6 +5,7 @@ import ChatHeader from "./ChatHeader.jsx";
 import MessageInput from "./MessageInput.jsx";
 import MessageSkeleton from "./skeletons/MessageSkeleton.jsx";
 import { formatMessageTime } from "../lib/utils";
+import DeletePopUp from "./DeletePopUp.jsx";
 
 const ChatContainer = () => {
   const {
@@ -14,6 +15,8 @@ const ChatContainer = () => {
     selectedUser,
     subscribeToMessages,
     unsubscribeFromMessages,
+    deleteMessageForAll,
+    deleteMessageForMe,
   } = useChatStore();
 
   const { authUser } = useAuthStore();
@@ -74,15 +77,42 @@ const ChatContainer = () => {
                 {formatMessageTime(message.createdAt)}
               </time>
             </div>
-            <div className="chat-bubble flex flex-col">
-              {message.image && (
-                <img
-                  src={message.image}
-                  alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
+            <div className="flex items-center gap-2 group">
+              {message.senderId === authUser._id && (
+                <DeletePopUp
+                  key={message._id}
+                  data={{
+                    msg: "Delete this message?",
+                    id: message._id,
+                    isAuth: true,
+                  }}
+                  deleteForAll={deleteMessageForAll}
+                  deleteForMe={deleteMessageForMe}
                 />
               )}
-              {message.text && <p>{message.text}</p>}
+
+              <div className="chat-bubble flex flex-col">
+                {message.image && (
+                  <img
+                    src={message.image}
+                    alt="Attachment"
+                    className="sm:max-w-[200px] rounded-md mb-2"
+                  />
+                )}
+                {message.text && <p>{message.text}</p>}
+              </div>
+              {message.senderId !== authUser._id && (
+                <DeletePopUp
+                  key={message._id}
+                  data={{
+                    msg: "Delete this message?",
+                    id: message._id,
+                    isAuth: false,
+                  }}
+                  deleteForAll={deleteMessageForAll}
+                  deleteForMe={deleteMessageForMe}
+                />
+              )}
             </div>
           </div>
         ))}

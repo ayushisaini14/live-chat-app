@@ -31,6 +31,7 @@ export const getMessages = async (req, res) => {
           receiverId: myId,
         },
       ],
+      deletedBy: { $ne: myId },
     });
     res.status(200).json(messages);
   } catch (error) {
@@ -73,3 +74,67 @@ export const sendMessage = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const deleteMessageForAll = async (req, res) => {
+  try {
+    const { id, receiverId } = req.body;
+    const myId = req.user._id;
+    await Message.deleteOne({ _id: id });
+
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("deleteMessage", id);
+    }
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteMessage controller", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteMessageForMe = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const myId = req.user._id;
+    const result = await Message.findByIdAndUpdate(
+      { _id: id },
+      { $addToSet: { deletedBy: myId } },
+      { new: true }
+    );
+
+    if (!result) return res.status(404).json({ message: "Message not found" });
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteMessage controller", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteChatForMe = async (req, res) => {
+  try {
+    const { id: userToChatId } = req.params;
+    const myId = req.user._id;
+    await Message.updateMany(
+      {
+        $or: [
+          {
+            senderId: myId,
+            receiverId: userToChatId,
+          },
+          {
+            senderId: userToChatId,
+            receiverId: myId,
+          },
+        ],
+      },
+      { $addToSet: { deletedBy: myId } },
+      { new: true }
+    );
+    res.status(200).json({ message: "Chat deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteChat controller", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+

@@ -3,10 +3,17 @@ import { useChatStore } from "../store/useChatStore.js";
 import { useAuthStore } from "../store/useAuthStore.js";
 import SidebarSkeleton from "./skeletons/SidebarSkeleton.jsx";
 import { Users, FilePenLine } from "lucide-react";
+import DeletePopUp from "./DeletePopUp.jsx";
 
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } =
-    useChatStore();
+  const {
+    getUsers,
+    users,
+    selectedUser,
+    setSelectedUser,
+    isUsersLoading,
+    deleteChatForMe,
+  } = useChatStore();
 
   const { onlineUsers } = useAuthStore();
 
@@ -52,40 +59,48 @@ const Sidebar = () => {
 
       <div className="overflow-y-auto w-full py-3">
         {filteredUsers.map((user) => (
-          <button
+          <div
             key={user._id}
             onClick={() => setSelectedUser(user)}
             className={`
-              w-full p-3 flex items-center gap-3
+              w-full p-3 flex items-center justify-between gap-3
               hover:bg-base-300 transition-colors
               ${
                 selectedUser?._id === user._id
                   ? "bg-base-300 ring-1 ring-base-300"
                   : ""
               }
+              group
             `}
           >
-            <div className="relative mx-auto lg:mx-0">
-              <img
-                src={user.profilePic || "/avatar.png"}
-                alt={user.name}
-                className="size-12 object-cover rounded-full"
-              />
-              {onlineUsers.includes(user._id) && (
-                <span
-                  className="absolute bottom-0 right-0 size-3 bg-green-500 
-                  rounded-full ring-2 ring-zinc-900"
+            <div className="flex items-center gap-2">
+              <div className="relative mx-auto lg:mx-0">
+                <img
+                  src={user.profilePic || "/avatar.png"}
+                  alt={user.name}
+                  className="size-12 object-cover rounded-full"
                 />
-              )}
-            </div>
-            {/* User info - only visible on larger screens */}
-            <div className="hidden lg:block text-left min-w-0">
-              <div className="font-medium truncate">{user.fullName}</div>
-              <div className="text-sm text-zinc-400">
-                {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+                {onlineUsers.includes(user._id) && (
+                  <span
+                    className="absolute bottom-0 right-0 size-3 bg-green-500 
+                  rounded-full ring-2 ring-zinc-900"
+                  />
+                )}
+              </div>
+              {/* User info - only visible on larger screens */}
+              <div className="hidden lg:block text-left min-w-0">
+                <div className="font-medium truncate">{user.fullName}</div>
+                <div className="text-sm text-zinc-400">
+                  {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+                </div>
               </div>
             </div>
-          </button>
+            <DeletePopUp
+              key={user._id}
+              data={{ msg: "Delete this chat?", id: user._id, isAuth: false }}
+              deleteForMe={deleteChatForMe}
+            />
+          </div>
         ))}
 
         {filteredUsers.length === 0 && (
